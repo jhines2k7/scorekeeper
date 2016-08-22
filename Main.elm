@@ -47,7 +47,7 @@ initialModel =
 
 type Msg
     = Edit
-    | Score
+    | Score Player Int
     | Input String
     | Save
     | Cancel
@@ -66,6 +66,9 @@ update msg model =
         Save ->
             save model
 
+        Score player points ->
+            model
+
         _ ->
             model
 
@@ -79,7 +82,7 @@ add : Model -> Model
 add model =
     let
         player =
-            Player (List.length model.players) model.name 0
+            Player ((List.length model.players) + 1) model.name 0
 
         newPlayers =
             player :: model.players
@@ -108,6 +111,25 @@ playerSection : Model -> Html Msg
 playerSection model =
     div []
         [ playerListHeader
+        , playerList model
+        ]
+
+
+playerList : Model -> Html Msg
+playerList model =
+    ul []
+        (List.map player model.players)
+
+
+player : Player -> Html Msg
+player player =
+    li []
+        [ i [ class "edit" ] []
+        , div [] [ text player.name ]
+        , button [ type' "button", onClick (Score player 1) ] [ text "1pt" ]
+        , button [ type' "button" ] [ text "2pt" ]
+        , button [ type' "button" ] [ text "3pt" ]
+        , div [ style [ ( "min-width", "0" ) ] ] [ text (toString player.points) ]
         ]
 
 
@@ -115,7 +137,7 @@ playerListHeader : Html Msg
 playerListHeader =
     header []
         [ div [] [ text "Name" ]
-        , div [] [ text "Score" ]
+        , div [] [ text "Points" ]
         ]
 
 
