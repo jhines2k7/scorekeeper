@@ -55,8 +55,7 @@ type Msg
 
 
 update : Msg -> Model -> Model
-update msg model =
-    case msg of
+update msg model = case msg of
         Input value ->
             { model | name = value }
 
@@ -66,11 +65,30 @@ update msg model =
         Save ->
             save model
 
-        Score player points ->
-            model
+        Score scorer points ->
+            recordScore model scorer points
 
         _ ->
             model
+
+
+recordScore : Model -> Player -> Int -> Model
+recordScore model scorer points =
+    let
+        newPlayers =
+            List.map
+                (\player ->
+                    if player.id == scorer.id then
+                        { player | points = player.points + points }
+                    else
+                        player
+                )
+                model.players
+
+        play =
+            Play ((List.length model.plays) + 1) scorer.id scorer.name points
+    in
+        { model | players = newPlayers, plays = play :: model.plays }
 
 
 save : Model -> Model
@@ -112,6 +130,7 @@ playerSection model =
     div []
         [ playerListHeader
         , playerList model
+        , pointTotal model
         ]
 
 
@@ -127,10 +146,23 @@ player player =
         [ i [ class "edit" ] []
         , div [] [ text player.name ]
         , button [ type' "button", onClick (Score player 1) ] [ text "1pt" ]
-        , button [ type' "button" ] [ text "2pt" ]
-        , button [ type' "button" ] [ text "3pt" ]
-        , div [ style [ ( "min-width", "0" ) ] ] [ text (toString player.points) ]
+        , button [ type' "button", onClick (Score player 2) ] [ text "2pt" ]
+        , button [ type' "button", onClick (Score player 3) ] [ text "3pt" ]
+        , div [] [ text (toString player.points) ]
         ]
+
+
+pointTotal : Model -> Html Msg
+pointTotal model =
+    let
+        total =
+            List.map .points model.plays
+                |> List.sum
+    in
+        footer []
+            [ div [] [ text "Total:" ]
+            , div [] [ text (toString total) ]
+            ]
 
 
 playerListHeader : Html Msg
